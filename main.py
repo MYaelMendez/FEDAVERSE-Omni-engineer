@@ -18,6 +18,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from atproto import Client
+from forge.domains.domain_agent import DomainAgent
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -36,6 +37,11 @@ client = OpenAI(
 
 AT_IDENTIFIER = os.getenv("AT_IDENTIFIER")
 AT_PASSWORD = os.getenv("AT_PASSWORD")
+NAMECHEAP_API_USER = os.getenv("NAMECHEAP_API_USER")
+NAMECHEAP_API_KEY = os.getenv("NAMECHEAP_API_KEY")
+NAMECHEAP_USERNAME = os.getenv("NAMECHEAP_USERNAME")
+NAMECHEAP_CLIENT_IP = os.getenv("NAMECHEAP_CLIENT_IP")
+domain_agent = DomainAgent(NAMECHEAP_API_USER, NAMECHEAP_API_KEY, NAMECHEAP_USERNAME, NAMECHEAP_CLIENT_IP)
 at_client = None
 
 DEFAULT_MODEL = "anthropic/claude-3.7-sonnet:thinking"
@@ -86,7 +92,7 @@ command_history = FileHistory('.aiconsole_history.txt')
 commands = WordCompleter([
     '/add', '/edit', '/new', '/search', '/image',
     '/clear', '/reset', '/diff', '/history', '/save',
-    '/load', '/undo', '/list', '/exec', '/atpost', '/help',
+    '/load', '/undo', '/list', '/exec', '/atpost', '/domain', '/help',
     '/model', '/change_model', '/show', 'exit'
 ], ignore_case=True)
 session = PromptSession(history=command_history)
@@ -658,6 +664,25 @@ async def handle_atpost_command(text):
     except Exception as e:
         print_colored(f"❌ Error posting to AT Protocol: {e}", Fore.RED)
 
+async def handle_domain_command(domain, did):
+    """Configure and verify a Namecheap TXT record."""
+    if not all([NAMECHEAP_API_USER, NAMECHEAP_API_KEY, NAMECHEAP_USERNAME, NAMECHEAP_CLIENT_IP]):
+        print_colored("❌ Namecheap credentials not configured.", Fore.RED)
+        return
+    print_colored(f"Configuring _atproto TXT record for {domain}...", Fore.CYAN)
+    try:
+        domain_agent.set_txt_record(domain, "_atproto", f"did={did}")
+    except Exception as e:
+        print_colored(f"❌ Failed to set TXT record: {e}", Fore.RED)
+        return
+    for _ in range(10):
+        if domain_agent.verify_record(domain, "_atproto", f"did={did}"):
+            print_colored("✅ DNS record verified!", Fore.GREEN)
+            return
+        await asyncio.sleep(30)
+    print_colored("❌ DNS verification timed out.", Fore.RED)
+
+
 async def handle_list_command():
     """List files, searches, and images currently in memory."""
     if not added_files and not stored_searches and not stored_images:
@@ -702,10 +727,11 @@ def print_welcome_message():
     table.add_row("/list", "List files, searches, and images in memory")
     table.add_row("/exec", "Execute a shell command")
     table.add_row("/atpost", "Post a message to the AT Protocol Fedaverse")
+    table.add_row("/domain", "Configure and verify a Namecheap domain")
     table.add_row("/help", "Show this help message")
     table.add_row("/model", "Show current AI model")
-    table.add_row("/change_model", "Change the AI model")
     table.add_row("/show", "Show content of a file")
+    table.add_row("/change_model", "Change the AI model")
     table.add_row("exit", "Exit the application")
 
     console.print(table)
@@ -888,6 +914,15 @@ async def main():
                 text = prompt.split("/atpost ", 1)[1].strip()
                 await handle_atpost_command(text)
                 continue
+            if prompt.startswith("/domain "):
+                args = prompt.split("/domain ", 1)[1].strip().split()
+                if len(args) == 2:
+                    domain, did = args
+                    await handle_domain_command(domain, did)
+                else:
+                    print_colored("Usage: /domain <domain> <did>", Fore.YELLOW)
+                continue
+
 
             if prompt.startswith("/help"):
                 await handle_help_command()
