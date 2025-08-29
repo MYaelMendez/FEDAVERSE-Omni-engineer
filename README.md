@@ -63,6 +63,10 @@ Omni Engineer is a spiritual successor to [Claude Engineer](https://github.com/D
    OPENROUTER_API_KEY="Your key"
    AT_IDENTIFIER="your_handle.bsky.social"
    AT_PASSWORD="your_app_password"
+   NAMECHEAP_API_USER="your_namecheap_username"
+   NAMECHEAP_API_KEY="your_namecheap_key"
+   NAMECHEAP_USERNAME="your_namecheap_username"
+   NAMECHEAP_CLIENT_IP="0.0.0.0"
    ```
 4. Run the main script:
    ```
@@ -85,6 +89,11 @@ Omni Engineer utilizes OpenRouter to access a variety of AI models. The default 
 - **Image Context**: Add both local and URL-based images to your AI context.
 - **Flexible Model Selection**: Switch between different AI models for various tasks.
 - **AT Protocol Posting**: Share updates to the Fedaverse via `/atpost`.
+- **Domain Verification**: Automate DNS records for custom AT Protocol handles via `DomainAgent`.
+
+## 🌐 Domain Agent
+
+The `forge.domains.DomainAgent` module automates Namecheap DNS setup for AT Protocol handles. It creates the `_atproto` TXT record and verifies propagation automatically.
 
 ## 🐛 Issue Reporting
 
