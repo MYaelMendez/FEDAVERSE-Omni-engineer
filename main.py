@@ -86,7 +86,7 @@ command_history = FileHistory('.aiconsole_history.txt')
 commands = WordCompleter([
     '/add', '/edit', '/new', '/search', '/image',
     '/clear', '/reset', '/diff', '/history', '/save',
-    '/load', '/undo', '/list', '/exec', '/atpost', '/help',
+    '/load', '/undo', '/list', '/exec', '/atpost', '/sovereign_gateway', '/help',
     '/model', '/change_model', '/show', 'exit'
 ], ignore_case=True)
 session = PromptSession(history=command_history)
@@ -658,6 +658,77 @@ async def handle_atpost_command(text):
     except Exception as e:
         print_colored(f"❌ Error posting to AT Protocol: {e}", Fore.RED)
 
+async def handle_sovereign_gateway(default_chat_history):
+    """Interactive wizard for sovereign AT handle onboarding and fleet setup."""
+    print_colored("\n⚡ Sovereign Gateway: AT Protocol onboarding flow", Fore.MAGENTA, Style.BRIGHT)
+
+    domain = await get_input_async("Domain to anchor (e.g., privateclient.ai):")
+    automation_choice = await get_input_async(
+        "Use registrar OAuth to automate DNS (_atproto TXT)? (yes/no):"
+    )
+    existing_did = await get_input_async("Existing DID (press enter to mint a new one):")
+
+    automation_enabled = automation_choice.strip().lower().startswith("y")
+    did_value = existing_did.strip() if existing_did.strip() else "<newly-issued DID>"
+
+    automated_steps = [
+        "Initiate OAuth 2.1 connection to registrar (Namecheap) with DNS-write scope only.",
+        "Retrieve or create the user's DID from the active AT Protocol session.",
+        f"Purge conflicting _atproto TXT records and set did={did_value} with low TTL (e.g., 300s).",
+        "Start propagation loop polling global resolvers every 30 seconds.",
+        "Call AT SDK handle verification once TXT is observed.",
+        f"Confirm back to the user (voice/text) that @{domain} is live.",
+    ]
+
+    manual_steps = [
+        "Confirm control of the domain and sign in to registrar DNS tools.",
+        f"Add or update the _atproto TXT record to did={did_value} with a short TTL.",
+        "Wait for propagation (typically a few minutes) and run handle verification.",
+        f"Announce completion to the requester so they can start using @{domain}.",
+    ]
+
+    fleet_choice = await get_input_async(
+        "Enable multi-handle fleet via /.well-known service? (yes/no):"
+    )
+    fleet_enabled = fleet_choice.strip().lower().startswith("y")
+
+    fleet_steps = [
+        "Store handle → DID mappings in Postgres (e.g., pastor-juan → dedicated DID).",
+        "Serve https://<handle-domain>/.well-known/atproto-did dynamically from the database.",
+        "Expose an admin command (e.g., issue handle for @alias.domain) that provisions the DID and mapping in one call.",
+    ] if fleet_enabled else []
+
+    def print_steps(title, steps):
+        if not steps:
+            return
+        print_colored(f"\n{title}", Fore.CYAN, Style.BRIGHT)
+        for idx, step in enumerate(steps, 1):
+            print_colored(f"  {idx}. {step}", Fore.WHITE)
+
+    if automation_enabled:
+        print_steps("Automated path (DomainAgent)", automated_steps)
+    else:
+        print_steps("Manual guidance", manual_steps)
+
+    print_colored(
+        "\nNext actions for ÆForge: build @forge/domains (registrar OAuth + DNS writes), secure OAuth UI, and the /.well-known DID service.",
+        Fore.YELLOW,
+    )
+
+    print_steps("Fleet service (optional)", fleet_steps)
+
+    summary = {
+        "domain": domain,
+        "mode": "automated" if automation_enabled else "manual",
+        "did": did_value,
+        "fleet_enabled": fleet_enabled,
+    }
+    default_chat_history.append({
+        "role": "user",
+        "content": f"Sovereign gateway run: {json.dumps(summary)}",
+    })
+    return default_chat_history
+
 async def handle_list_command():
     """List files, searches, and images currently in memory."""
     if not added_files and not stored_searches and not stored_images:
@@ -702,6 +773,7 @@ def print_welcome_message():
     table.add_row("/list", "List files, searches, and images in memory")
     table.add_row("/exec", "Execute a shell command")
     table.add_row("/atpost", "Post a message to the AT Protocol Fedaverse")
+    table.add_row("/sovereign_gateway", "Run the AT handle onboarding wizard")
     table.add_row("/help", "Show this help message")
     table.add_row("/model", "Show current AI model")
     table.add_row("/change_model", "Change the AI model")
@@ -887,6 +959,10 @@ async def main():
             if prompt.startswith("/atpost "):
                 text = prompt.split("/atpost ", 1)[1].strip()
                 await handle_atpost_command(text)
+                continue
+
+            if prompt.startswith("/sovereign_gateway"):
+                default_chat_history = await handle_sovereign_gateway(default_chat_history)
                 continue
 
             if prompt.startswith("/help"):

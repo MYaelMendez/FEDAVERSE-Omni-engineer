@@ -42,6 +42,7 @@ Omni Engineer is a spiritual successor to [Claude Engineer](https://github.com/D
 - `/list`: List files, searches, and images in memory
 - `/exec <command>`: Execute a shell command
 - `/atpost <text>`: Post a message to the AT Protocol Fedaverse
+- `/sovereign_gateway`: Launch the AT handle onboarding wizard for automated or manual DNS/DID setup
 - `/help`: Display available commands
 - `/model`: Show current AI model
 - `/change_model`: Change the AI model
