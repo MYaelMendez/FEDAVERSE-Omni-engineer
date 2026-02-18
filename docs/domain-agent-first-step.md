@@ -2,6 +2,19 @@
 
 This repo now includes a `forge.domains` scaffold as the first implementation step for the Sovereign Gateway onboarding flow.
 
+## The first step to bring the agent to life
+
+Implement the **deterministic DNS planning core** first, before OAuth or live registrar writes.
+
+That means:
+
+1. Accept a `domain + did:plc` verification request.
+2. Compute the exact `_atproto` TXT record target (`did=did:plc:...`).
+3. Merge it against existing DNS records by removing conflicting `_atproto` values while preserving unrelated records.
+4. Return a reviewable before/after plan object.
+
+This is the highest-leverage first step because it creates a stable contract for every later phase (OAuth, API transport, polling, and UI) without risking accidental DNS mutations.
+
 ## What this enables now
 
 - A canonical `DomainVerificationRequest` object that turns a `did:plc:...` value into an `_atproto` TXT record.
