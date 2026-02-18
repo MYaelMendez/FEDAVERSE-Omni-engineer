@@ -6,6 +6,7 @@ This repo now includes a `forge.domains` scaffold as the first implementation st
 
 - A canonical `DomainVerificationRequest` object that turns a `did:plc:...` value into an `_atproto` TXT record.
 - A deterministic `NamecheapDnsPlanner.merge_records(...)` function that removes conflicting `_atproto` entries and appends the desired value.
+- A `DomainAgent.build_plan(...)` orchestration seam that returns a full before/after DNS plan for safe review before API writes.
 - A clean seam for the next milestone: adding OAuth-backed Namecheap transport calls without rewriting onboarding logic.
 
 ## Why this is the best first step
