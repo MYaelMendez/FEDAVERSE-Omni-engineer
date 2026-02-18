@@ -2,6 +2,7 @@
 
 from .models import DnsTxtRecord, DomainVerificationRequest, Registrar
 from .namecheap import NamecheapCredentials, NamecheapDnsPlanner
+from .service import DomainAgent, DomainPlan
 
 __all__ = [
     "DnsTxtRecord",
@@ -9,4 +10,6 @@ __all__ = [
     "Registrar",
     "NamecheapCredentials",
     "NamecheapDnsPlanner",
+    "DomainPlan",
+    "DomainAgent",
 ]
