@@ -14,6 +14,19 @@ Build and expose one end-to-end flow that is safe by default:
 
 This gives the UI and agent a stable API immediately while eliminating accidental DNS mutations during early rollout.
 
+## Day-1 execution plan (ship this before OAuth UI)
+
+1. Define the request/response contract for `DomainAgent.build_plan` as the onboarding system boundary.
+2. Keep the planner transport-agnostic and pure (no live Namecheap writes).
+3. Return deterministic `records_before`, `records_after`, and action metadata so the frontend can render a review screen.
+4. Add contract tests that prove:
+   - conflicting `_atproto` records are replaced,
+   - unrelated DNS records are preserved,
+   - unsupported registrars fail fast.
+5. Expose this flow via the onboarding API as a **preview mode** endpoint.
+
+If this preview contract is stable, every subsequent piece (OAuth, DNS write transport, verification polling, and AT verification callback) can be integrated in parallel.
+
 ## Why this is the highest-leverage first move
 
 - It creates a single source of truth for DNS intent before automation touches production records.
