@@ -1,37 +1,42 @@
-# DomainAgent First Step: DNS Planning Core
+# DomainAgent First Step: Ship the Registrar Contract Vertical Slice
 
-This repo now includes a `forge.domains` scaffold as the first implementation step for the Sovereign Gateway onboarding flow.
+To bring the onboarding agent to life, the first step is to lock down the **registrar contract** as an executable vertical slice (mocked transport, real orchestration).
 
-## The first step to bring the agent to life
+## First step (what we do now)
 
-Implement the **deterministic DNS planning core** first, before OAuth or live registrar writes.
+Build and expose one end-to-end flow that is safe by default:
 
-That means:
+1. Accept a `domain + did:plc` onboarding request.
+2. Compute the target `_atproto` TXT record (`did=did:plc:...`).
+3. Merge against existing records and remove conflicting `_atproto` values.
+4. Return a reviewable before/after plan and a machine-readable list of actions.
+5. Keep registrar writes disabled behind a transport interface until OAuth is connected.
 
-1. Accept a `domain + did:plc` verification request.
-2. Compute the exact `_atproto` TXT record target (`did=did:plc:...`).
-3. Merge it against existing DNS records by removing conflicting `_atproto` values while preserving unrelated records.
-4. Return a reviewable before/after plan object.
+This gives the UI and agent a stable API immediately while eliminating accidental DNS mutations during early rollout.
 
-This is the highest-leverage first step because it creates a stable contract for every later phase (OAuth, API transport, polling, and UI) without risking accidental DNS mutations.
+## Why this is the highest-leverage first move
 
-## What this enables now
+- It creates a single source of truth for DNS intent before automation touches production records.
+- It unblocks parallel work:
+  - OAuth UI can be built against the contract now.
+  - Namecheap transport can be implemented behind the same interface.
+  - Verification polling can consume the same plan output.
+- It keeps risk low: deterministic planning is testable, observable, and reversible.
 
-- A canonical `DomainVerificationRequest` object that turns a `did:plc:...` value into an `_atproto` TXT record.
-- A deterministic `NamecheapDnsPlanner.merge_records(...)` function that removes conflicting `_atproto` entries and appends the desired value.
-- A `DomainAgent.build_plan(...)` orchestration seam that returns a full before/after DNS plan for safe review before API writes.
-- A clean seam for the next milestone: adding OAuth-backed Namecheap transport calls without rewriting onboarding logic.
+## Definition of done for Step 1
 
-## Why this is the best first step
+- Deterministic planner behavior is covered by unit tests.
+- A `DomainAgent` orchestration seam returns `records_before` and `records_after`.
+- Unsupported registrars fail fast with clear errors.
+- API-facing docs describe the request/response contract for the onboarding UI.
 
-It isolates core domain-verification logic from network dependencies. That gives us:
+## Immediate follow-up sequence
 
-1. Unit-testable behavior immediately.
-2. Safer rollout before touching real DNS records.
-3. A stable contract the UI/OAuth flow can already integrate against.
+1. **OAuth integration:** connect Namecheap with DNS-scope permissions only.
+2. **Transport implementation:** map planner output to `domains.dns.setHosts` payloads.
+3. **Verification loop:** poll public resolvers every 30 seconds until `_atproto` matches.
+4. **Completion action:** call AT Protocol DNS verification and return success state to the user.
 
-## Next implementation tasks
+---
 
-1. Add Namecheap API transport client and wire planner output into `domains.dns.setHosts` requests.
-2. Add DNS propagation polling against public resolvers.
-3. Expose orchestration endpoints in FastAPI for the onboarding agent.
+If we execute only one thing first, execute this contract slice. Every later feature in the Sovereign Gateway depends on it.
