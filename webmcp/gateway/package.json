@@ -1,0 +1,13 @@
+{
+  "name": "webmcp-gateway",
+  "version": "1.0.0",
+  "description": "WebMCP local gateway – bridges WebSocket clients to the Python tool server over stdio/NDJSON",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "license": "MIT"
+}
