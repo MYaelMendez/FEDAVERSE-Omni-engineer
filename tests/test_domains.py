@@ -37,6 +37,35 @@ def test_domain_agent_builds_deterministic_plan():
         DnsTxtRecord(host="@", value="keep"),
         DnsTxtRecord(host="_atproto", value="did=did:plc:new", ttl=60),
     )
+    assert plan.actions == (
+        "remove conflicting _atproto TXT records",
+        "upsert _atproto TXT -> did=did:plc:new (ttl=60)",
+    )
+
+
+def test_domain_agent_create_action_when_record_absent():
+    request = DomainVerificationRequest(domain="privateclient.ai", did="did:plc:new")
+
+    plan = DomainAgent().build_plan(request, [DnsTxtRecord(host="@", value="keep")])
+
+    assert plan.actions == ("create _atproto TXT -> did=did:plc:new (ttl=60)",)
+
+
+def test_domain_plan_to_dict_contains_preview_payload():
+    request = DomainVerificationRequest(domain="privateclient.ai", did="did:plc:new")
+    plan = DomainAgent().build_plan(request, [DnsTxtRecord(host="@", value="keep")])
+
+    assert plan.to_dict() == {
+        "domain": "privateclient.ai",
+        "did": "did:plc:new",
+        "registrar": Registrar.NAMECHEAP.value,
+        "records_before": [{"host": "@", "value": "keep", "ttl": 60}],
+        "records_after": [
+            {"host": "@", "value": "keep", "ttl": 60},
+            {"host": "_atproto", "value": "did=did:plc:new", "ttl": 60},
+        ],
+        "actions": ["create _atproto TXT -> did=did:plc:new (ttl=60)"],
+    }
 
 
 def test_domain_agent_rejects_unknown_registrar():
