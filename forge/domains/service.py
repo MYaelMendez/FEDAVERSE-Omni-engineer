@@ -14,6 +14,26 @@ class DomainPlan:
     records_before: tuple[DnsTxtRecord, ...]
     records_after: tuple[DnsTxtRecord, ...]
 
+    def to_dict(self) -> dict[str, object]:
+        """JSON-ready plan payload for UI and API review surfaces."""
+
+        return {
+            "request": {
+                "domain": self.request.domain,
+                "did": self.request.did,
+                "registrar": self.request.registrar.value,
+            },
+            "records_before": [
+                {"host": record.host, "value": record.value, "ttl": record.ttl}
+                for record in self.records_before
+            ],
+            "records_after": [
+                {"host": record.host, "value": record.value, "ttl": record.ttl}
+                for record in self.records_after
+            ],
+            "next_action": "review_and_apply_dns",
+        }
+
 
 class DomainAgent:
     """Application-facing orchestration layer for domain verification planning."""
