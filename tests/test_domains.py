@@ -90,3 +90,25 @@ def test_domain_agent_first_step_builds_plan_from_raw_inputs():
         DnsTxtRecord(host="@", value="keep"),
         DnsTxtRecord(host="_atproto", value="did=did:plc:new", ttl=60),
     )
+
+
+def test_domain_plan_to_dict_returns_api_ready_payload():
+    plan = DomainAgent().first_step(
+        domain="privateclient.ai",
+        did="did:plc:new",
+        existing_records=[DnsTxtRecord(host="@", value="keep")],
+    )
+
+    assert plan.to_dict() == {
+        "request": {
+            "domain": "privateclient.ai",
+            "did": "did:plc:new",
+            "registrar": "namecheap",
+        },
+        "records_before": [{"host": "@", "value": "keep", "ttl": 60}],
+        "records_after": [
+            {"host": "@", "value": "keep", "ttl": 60},
+            {"host": "_atproto", "value": "did=did:plc:new", "ttl": 60},
+        ],
+        "next_action": "review_and_apply_dns",
+    }
