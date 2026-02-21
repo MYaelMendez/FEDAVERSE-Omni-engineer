@@ -18,6 +18,23 @@ class DomainPlan:
 class DomainAgent:
     """Application-facing orchestration layer for domain verification planning."""
 
+    def first_step(
+        self,
+        *,
+        domain: str,
+        did: str,
+        existing_records: list[DnsTxtRecord],
+        registrar: Registrar = Registrar.NAMECHEAP,
+    ) -> DomainPlan:
+        """Build the deterministic DNS plan used as onboarding step one.
+
+        This helper creates a validated request and then computes the
+        before/after DNS plan without touching registrar APIs.
+        """
+
+        request = DomainVerificationRequest(domain=domain, did=did, registrar=registrar)
+        return self.build_plan(request=request, existing_records=existing_records)
+
     def build_plan(
         self,
         request: DomainVerificationRequest,

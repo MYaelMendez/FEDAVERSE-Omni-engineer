@@ -72,3 +72,21 @@ def test_domain_agent_rejects_unknown_registrar():
         assert False, "Expected ValueError"
     except ValueError as exc:
         assert "Unsupported registrar" in str(exc)
+
+
+def test_domain_agent_first_step_builds_plan_from_raw_inputs():
+    plan = DomainAgent().first_step(
+        domain="PrivateClient.ai.",
+        did=" did:plc:new ",
+        existing_records=[
+            DnsTxtRecord(host="_atproto", value="did=did:plc:old"),
+            DnsTxtRecord(host="@", value="keep"),
+        ],
+    )
+
+    assert plan.request.domain == "privateclient.ai"
+    assert plan.request.did == "did:plc:new"
+    assert plan.records_after == (
+        DnsTxtRecord(host="@", value="keep"),
+        DnsTxtRecord(host="_atproto", value="did=did:plc:new", ttl=60),
+    )
