@@ -22,7 +22,7 @@
 
 "use strict";
 
-const { WebSocketServer } = require("ws");
+const { WebSocketServer, WebSocket } = require("ws");
 const { spawn } = require("child_process");
 const path = require("path");
 const readline = require("readline");
@@ -86,13 +86,13 @@ rl.on("line", (line) => {
   if (routeKey === null) {
     // No routing key – broadcast to all connected clients.
     wss.clients.forEach((ws) => {
-      if (ws.readyState === ws.OPEN) ws.send(line);
+      if (ws.readyState === WebSocket.OPEN) ws.send(line);
     });
     return;
   }
 
   const ws = routeMap.get(routeKey);
-  if (!ws || ws.readyState !== ws.OPEN) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
     // Client gone; clean up.
     routeMap.delete(routeKey);
     return;

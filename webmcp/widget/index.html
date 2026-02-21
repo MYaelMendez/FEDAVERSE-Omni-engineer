@@ -214,9 +214,12 @@ term.writeln('\x1b[1;32mWebMCP Terminal\x1b[0m – connecting to gateway…');
 
 // ── Status badge ─────────────────────────────────────────────────────────
 const statusBadge = document.getElementById('status-badge');
+const STATUS_CLASSES = ['ready', 'computing', 'governance', 'error'];
 function setStatus(label) {
   statusBadge.textContent = label;
-  statusBadge.className   = label.toLowerCase().replace(/[^a-z]/g, '');
+  STATUS_CLASSES.forEach(c => statusBadge.classList.remove(c));
+  const cls = label.toLowerCase().replace(/[^a-z]/g, '');
+  if (STATUS_CLASSES.includes(cls)) statusBadge.classList.add(cls);
 }
 
 // ── Request-id counter ───────────────────────────────────────────────────
