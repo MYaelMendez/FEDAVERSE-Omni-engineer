@@ -75,4 +75,8 @@ logs/
 # Local configuration
 *.local.py
 instance/
-config.local.py 
+config.local.py
+
+# Node.js
+node_modules/
+package-lock.json 
