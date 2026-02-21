@@ -20,6 +20,7 @@ This is the highest-leverage first step because it creates a stable contract for
 - A canonical `DomainVerificationRequest` object that turns a `did:plc:...` value into an `_atproto` TXT record.
 - A deterministic `NamecheapDnsPlanner.merge_records(...)` function that removes conflicting `_atproto` entries and appends the desired value.
 - A `DomainAgent.build_plan(...)` orchestration seam that returns a full before/after DNS plan for safe review before API writes.
+- A `DomainAgent.first_step(...)` helper that accepts raw onboarding inputs (`domain`, `did`, and existing TXT records) and returns the same deterministic plan in one call.
 - A clean seam for the next milestone: adding OAuth-backed Namecheap transport calls without rewriting onboarding logic.
 
 ## Why this is the best first step
