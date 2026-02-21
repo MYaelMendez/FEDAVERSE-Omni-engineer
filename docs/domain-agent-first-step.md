@@ -53,3 +53,14 @@ If this preview contract is stable, every subsequent piece (OAuth, DNS write tra
 ---
 
 If we execute only one thing first, execute this contract slice. Every later feature in the Sovereign Gateway depends on it.
+
+### Preview response shape (contract v1)
+
+`DomainAgent.build_plan` should return:
+
+- `records_before`: tuple of existing DNS records
+- `records_after`: tuple with `_atproto` reconciled
+- `actions`: ordered, machine-readable action list for UI review
+- `to_dict()`: API-safe payload for onboarding preview mode
+
+This keeps the first step deterministic and immediately consumable by an OAuth UI and backend preview endpoint.
