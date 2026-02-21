@@ -8,6 +8,27 @@ def test_domain_request_builds_atproto_record():
     assert request.atproto_record == DnsTxtRecord(host="_atproto", value="did=did:plc:abc123", ttl=60)
 
 
+def test_domain_request_normalizes_domain_and_did():
+    request = DomainVerificationRequest(domain=" PrivateClient.AI. ", did=" did:plc:abc123 ")
+
+    assert request.domain == "privateclient.ai"
+    assert request.did == "did:plc:abc123"
+
+
+def test_domain_request_rejects_invalid_domain_or_did():
+    try:
+        DomainVerificationRequest(domain="invalid_domain", did="did:plc:abc123")
+        assert False, "Expected ValueError for invalid domain"
+    except ValueError as exc:
+        assert "Invalid domain" in str(exc)
+
+    try:
+        DomainVerificationRequest(domain="privateclient.ai", did="did:web:privateclient.ai")
+        assert False, "Expected ValueError for non-plc DID"
+    except ValueError as exc:
+        assert "did:plc:" in str(exc)
+
+
 def test_namecheap_planner_replaces_conflicting_atproto_record():
     existing = [
         DnsTxtRecord(host="@", value="example"),

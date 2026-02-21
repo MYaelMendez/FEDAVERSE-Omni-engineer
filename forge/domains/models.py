@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+import re
+
+
+DOMAIN_RE = re.compile(r"^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$")
 
 
 class Registrar(str, Enum):
@@ -26,6 +30,19 @@ class DomainVerificationRequest:
     domain: str
     did: str
     registrar: Registrar = Registrar.NAMECHEAP
+
+    def __post_init__(self) -> None:
+        normalized_domain = self.domain.strip().lower().rstrip(".")
+        normalized_did = self.did.strip()
+
+        if not DOMAIN_RE.match(normalized_domain):
+            raise ValueError(f"Invalid domain: {self.domain}")
+
+        if not normalized_did.startswith("did:plc:"):
+            raise ValueError("DID must start with did:plc:")
+
+        object.__setattr__(self, "domain", normalized_domain)
+        object.__setattr__(self, "did", normalized_did)
 
     @property
     def atproto_record(self) -> DnsTxtRecord:
