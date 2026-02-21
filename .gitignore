@@ -76,3 +76,5 @@ logs/
 *.local.py
 instance/
 config.local.py 
+# Node
+node_modules/
