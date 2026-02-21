@@ -1,0 +1,14 @@
+{
+  "name": "@ae11/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "mcp": "./src/mcp.js"
+  },
+  "scripts": {
+    "mcp": "node ./src/mcp.js"
+  },
+  "dependencies": {
+    "@ae11/runtime": "0.1.0"
+  }
+}

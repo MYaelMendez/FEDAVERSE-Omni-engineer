@@ -1,0 +1,11 @@
+{
+  "name": "@ae11/viewport",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node ./dev-server.js"
+  },
+  "dependencies": {
+    "@ae11/runtime": "0.1.0"
+  }
+}

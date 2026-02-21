@@ -1,0 +1,17 @@
+{
+  "name": "ae11-runtime-foundation",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/runtime",
+    "packages/cli",
+    "packages/viewport",
+    "packages/widget-factory",
+    "packages/terminal-adapter"
+  ],
+  "scripts": {
+    "test": "node --test packages/runtime/test/runtime.test.js",
+    "dev:viewport": "npm run dev -w @ae11/viewport",
+    "mcp": "node packages/cli/src/mcp.js"
+  }
+}
